@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;">
+    <title>Морской бой</title>
+    <style>
+        .outer {margin-bottom: 21px; }
+        .text-center{text-align: center; }
+        .clearfix:before, .clearfix:after {display:table; content:'';}
+        .clearfix:after {clear:both;}
+
+        .btn-play {
+            width: 144px;
+            height: 45px;
+            display: block;
+            font-size: 24px;
+            color: #4530af;
+            font-style: italic;
+            line-height: 40px;
+            text-align: center;
+            margin-top: 265px;
+            margin-left: 180px;
+            background-position: 0 -150px;
+            cursor: pointer;}
+
+        /* display */
+        [data-hidden="true"] {display:none;}
+        [data-hidden="false"], .block {display:block;}
+
+        .battlefield {
+            width: 860px;
+            height: 530px;
+            position: relative;
+            margin: auto;
+            background: url('seabattle/grid.png') repeat;
+        }
+
+        .field {
+            width: 365px;
+            height: 363px;
+            position: relative;
+            background: url("seabattle/bg_play_field.png");
+        }
+
+        .field-user {
+            float: left;
+            margin-left: 38px;
+        }
+
+        .field-comp {
+            float: right;
+            margin-right: 26px;
+        }
+
+        .text-top {
+            height: 35px;
+            font-size: 35px;
+            text-align: center;
+            margin-bottom: 7px;
+            font-style: italic;
+            color: #4530af;
+        }
+
+        .ship, .btn-play{background: url("seabattle/sprite.png"); height: 35px; position: absolute;}
+        .vertical {transform: rotate(90deg); transform-origin: 17.5px 17.5px;}
+        .ships {width: 330px; height: 330px; position: relative; left: 29px; top: 27px;}
+
+        .fourdeck {width: 134px; background-position: 0 0;}
+        .fourdeck.success {background-position: 0 -50px;}
+        .fourdeck.unsuccess {background-position: 0 -100px;}
+        .tripledeck {width: 101px; background-position: -150px 0;}
+        .tripledeck.success {background-position: -150px -50px;}
+        .tripledeck.unsuccess {background-position: -150px -100px;}
+        .doubledeck {width: 68px; background-position: -270px 0;}
+        .doubledeck.success {background-position: -270px -50px;}
+        .doubledeck.unsuccess {background-position: -270px -100px;}
+        .singledeck {width: 35px; background-position: -360px 0;}
+        .singledeck.success {background-position: -360px -50px;}
+        .singledeck.unsuccess {background-position: -360px -100px;}
+        .type-placement-box {margin-left: 430px; margin-top: 100px; line-height: 34px; padding-bottom: 18px;}
+        .type-placement-box .link {font-size: 23px; border-bottom: dashed 2px #4530af; cursor: pointer; font-style: italic; color: #cc0000}
+
+
+
+        .icon-field {width: 30px; height: 33px; position: absolute; z-index: 5;}
+        .dot {background-position: -410px 0;}
+        .red-cross {background-position: -410px -50px;}
+        .shaded-cell {background-position: -410px -100px;}
+        .shaded-cell_red {background-position: -410px -140px;}
+
+    </style>
+
+</head>
+<body>
+    <div class="battlefield">
+        <div class="text-top">Морской бой</div>
+        <div class="outer clearfix">
+
+            <div class="field field-user">
+                <div id="field_user" class="ships"></div>
+            </div>
+
+            <div class="field field-comp" data-hidden="true">
+                <div id="field_comp" class="ships"></div>
+            </div>
+
+            <div id="type_placement" class="type-placement-box">
+                <span class="link" data-target="random">Раставить корабли случайным образом</span>
+            </div>
+
+            <span id="play" class="btn-play" data-hidden="true">Играть</span>
+        </div>
+    </div>
+    <script src="script_of_batle.js"></script>
+</body>
+</html>
