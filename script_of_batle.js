@@ -26,7 +26,8 @@ window.onload = function () {
         return document.getElementById(id);
     }
 
-    var userfield = getElement('field_user'), compfield = getElement('field_comp');
+    var userfield = getElement('field_user'), compfield = getElement('field_comp'), comp;
+
     var user = new Field(getElement('field_user'));
 
     // здесь безымянная функция привязана к обработчику событию, поэтому первым аргументом она
@@ -170,6 +171,188 @@ window.onload = function () {
         div.style.cssText = 'left: ' + (this.y0 * player.shipSide) + 'px; top: ' + (this.x0  * player.shipSide) + 'px;';
         player.field.appendChild(div);
     }
-    
+    //comp.randomLocationShips();
 
+    getElement('play').addEventListener('click', function (e) {
+        var el = e.target;
+        if (el.tagName != 'SPAN') return;
+        document.querySelector('.field-comp').setAttribute('data-hidden', 'false');
+        comp = new Field(getElement('field_comp'));
+        comp.randomLocationShips();
+        getElement('type_placement').setAttribute('data-hidden', true);
+        getElement('play').setAttribute('data-hidden', true);
+        Controller.battle.init();
+    });
+
+    var Controller = (function () {
+       var player, enemy, self, coords, text,
+           srvText = getElement('text_btm'),
+           tm = 0;
+
+       var battle = {
+           init: function () {
+               self = this;
+               var rnd = getRandom(1);
+
+               rnd = 0;
+
+               player = (rnd == 0) ? user : comp;
+               enemy = (rnd == 0) ? comp : user;
+               if (player == user) {
+                   compfield.addEventListener('click', self.shoot);
+                   compfield.addEventListener('contextmenu', self.setEmptyCell);
+                   self.showServiseText('Вы стреляете первым');
+               }
+           },
+
+           showServiseText: function (text) {
+               srvText.innerHTML = '';
+               srvText.innerHTML = text;
+           },
+
+           setEmptyCell: function (e) {
+               // проверяем что кликнули именно правой кнопкой мыши
+               if (e.which != 3) return false;
+               // убираем событие браузера на клик прав кнопки мыши
+               e.preventDefault();
+               coords = self.transformCoordinates(e, comp);
+               //var ch = self.checkCell();
+               // ch == true => клетка пустая, иначе false
+               if (comp.matrix[coords.x][coords.y] == 0 || comp.matrix[coords.x][coords.y] == 1) {
+                    self.showIcons(enemy, coords, 'shaded-cell');
+                    comp.matrix[coords.x][coords.y] = 2;
+               }
+           },
+
+           //////////////////////////////////////
+           checkCell: function () {
+               var icons = enemy.querySelectorAll('icon-field'),
+                   flag = true;
+               [].forEach.call(icons, function (el) {
+                   var x = el.style.top.slice(0, -2) / comp.shipSide,
+                       y = el.style.left.slice(0, -2) / comp.shipSide;
+                   // Вроде не нужна
+               })
+           },
+           ////////////////////////////////////////////
+
+           shoot: function(e) {
+               if (e != undefined) {
+                   if (e.which != 1) return false;
+                   coords = self.transformCoordinates(e, enemy);
+               } else {
+                   coords = (comp.shootMatrixAround.length) ? self.getCoordinatesShotAround() : self.getCoordinatesShot();
+               }
+
+               var val = enemy.matrix[coords.x][coords.y];
+               switch (val) {
+                   // промах
+                   case 0:
+                       enemy.matrix[coords.x][coords.y] = 3;
+                       self.showIcons(enemy, coords, 'dot');
+                       text = (player == user) ? "Вы промохнулись. Стредяет компьютер" : "Компьютер промохнулся. Теперь стреляете Вы";
+                       self.showServiseText(text);
+                       player = (player == user) ? comp : user;
+                       enemy = (player == user) ? user : comp;
+                       if (player == comp) {
+                           // удаляем обработчики собтий для пользователя
+                           compfield.removeEventListener('click', self.shoot);
+                           compfield.removeEventListener('contextmenu', self.setEmptyCell);
+                           setTimeout(function () {
+                               return self.shoot();
+                           }, 1000);
+                       } else {
+                           // устанавливаем обработчики событий для пользователя
+                           compfield.addEventListener('click', self.shoot);
+                           compfield.addEventListener('contextmenu', self.setEmptyCell);
+                       }
+                       break;
+
+                   // попадание
+                   case 1:
+                       enemy.showIcons(enemy, coords, 'red-cross');
+                       text = (player == user) ? "Вы попали! Снова Ваш выстрел" : "Компьютер попал. Он снова ходит";
+                       enemy.matrix[coords.x][coords.y] = 4;
+                       self.showServiseText(text);
+                       
+                       for (var i = enemy.squadron.length - 1; i >=0; i--) {
+                           var warship = enemy.squadron[i],
+                               arrayDescks = enemy.matrix;
+                           for (var j = 0; j < arrayDescks.length; j++) {
+                               if (arrayDescks[j][0] == coords.x && arrayDescks[j][1] == coords.y) {
+                                   warship.hits++;
+                                   if (warship.hits == warship.decks) {
+                                       enemy.squadron.splice(i, 1);
+                                   }
+                               }
+                           }
+                       }
+
+                       if (enemy.squadron.length == 0) {
+                           text = (player == user) ? "Поздравляем, Вы победили!" : "К сожалению, Вы проиграли ;(";
+                           self.showServiseText(text);
+                           if (player == user) {
+                               compfield.removeEventListener('click', self.shoot);
+                               compfield.removeEventListener('contextmenu', self.setEmptyCell);
+                           } else {
+                               // показываем оставшиеся корабли
+                           }
+                       }
+                       break;
+
+                   // отмеченная координата
+                   case 2:
+                       text = "Сначла снимите блокировку с этих координат!";
+                       self.showServiseText(text);
+                       var icons = compfield.querySelectorAll('.shaded-cell');
+                       [].forEach.call(icons, function (el) {
+                          var x = el.style.top.slice(0, -2) / enemy.shipSide,
+                              y = el.style.left.slice(0, -2) / enemy.shipSide;
+                          if (coords.x == x && coords.y == y) {
+                              el.classList.add('shaded-cell_red');
+                              setTimeout(function () {
+                                  el.classList.remove('shaded-cell_red');
+                              }, 500);
+                          }
+                       });
+                       break;
+                       // обстреленные координаты
+                   case 3:
+                   case 4:
+                       text = "По этим координатам Вы уже стреляли";
+                       self.showServiseText(text);
+                       break;
+               }
+           },
+
+           transformCoordinates: function (e, enemy) {
+               // полифил для IE
+               if (!Math.trunc) {
+                   Math.trunc = function(v) {
+                       v = +v;
+                       return (v - v % 1) || (!isFinite(v) || v === 0 ? v : v < 0 ? -0 : 0);
+                   };
+               }
+               var obj = {};
+               // отбрасывание дробной части
+               obj.x = Math.trunc((e.pageY - enemy.fieldX) / enemy.shipSide);
+               obj.y = Math.trunc((e.pageX - enemy.fieldY) / enemy.shipSide);
+               return obj;
+           },
+           
+           showIcons: function (enemy, coords, iconClass) {
+               var div = document.createElement('div');
+               div.className = 'icon-field ' + iconClass;
+               div.style.cssText = 'left: ' + (coords.y * enemy.shipSide) + 'px; top: ' + (coords.x * enemy.shipSide) + 'px;';
+               enemy.field.appendChild(div);
+
+           }
+
+       };
+
+       return ({
+           battle: battle,
+           init: battle.init
+       });
+    })();
 };
