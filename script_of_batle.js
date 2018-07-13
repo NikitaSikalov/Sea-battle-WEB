@@ -221,6 +221,18 @@ window.onload = function () {
                if (comp.matrix[coords.x][coords.y] == 0 || comp.matrix[coords.x][coords.y] == 1) {
                     self.showIcons(enemy, coords, 'shaded-cell');
                     comp.matrix[coords.x][coords.y] = 2;
+               } else {
+                   if (comp.matrix[coords.x][coords.y] == 2) {
+                       var icons = enemy.field.querySelectorAll('.shaded-cell');
+                       [].forEach.call(icons, function (el) {
+                           var x = el.style.top.slice(0, -2) / enemy.shipSide,
+                               y = el.style.left.slice(0, -2) / enemy.shipSide;
+                           if (coords.x == x && coords.y == y) {
+                               enemy.field.removeChild(el);
+                           }
+                       });
+                       comp.matrix[coords.x][coords.y] = 0;
+                   }
                }
            },
 
@@ -241,7 +253,18 @@ window.onload = function () {
                    if (e.which != 1) return false;
                    coords = self.transformCoordinates(e, enemy);
                } else {
-                   coords = (comp.shootMatrixAround.length) ? self.getCoordinatesShotAround() : self.getCoordinatesShot();
+                   var temp = {
+                       x: getRandom(9),
+                       y: getRandom(9)
+                   };
+                   //temp.x = getRandom(10);
+                   //temp.y = getRandom(10);
+                   while (enemy.matrix[temp.x][temp.y] != 0 && enemy.matrix[temp.x][temp.y] != 1) {
+                       temp.x = getRandom(9);
+                       temp.y = getRandom(9);
+                   }
+                   coords = temp;
+                  // coords = (comp.shootMatrixAround.length) ? self.getCoordinatesShotAround() : self.getCoordinatesShot();
                }
 
                var val = enemy.matrix[coords.x][coords.y];
@@ -253,14 +276,14 @@ window.onload = function () {
                        text = (player == user) ? "Вы промохнулись. Стредяет компьютер" : "Компьютер промохнулся. Теперь стреляете Вы";
                        self.showServiseText(text);
                        player = (player == user) ? comp : user;
-                       enemy = (player == user) ? user : comp;
+                       enemy = (enemy == comp) ? user : comp;
                        if (player == comp) {
                            // удаляем обработчики собтий для пользователя
                            compfield.removeEventListener('click', self.shoot);
                            compfield.removeEventListener('contextmenu', self.setEmptyCell);
                            setTimeout(function () {
                                return self.shoot();
-                           }, 1000);
+                           }, 1300);
                        } else {
                            // устанавливаем обработчики событий для пользователя
                            compfield.addEventListener('click', self.shoot);
@@ -270,14 +293,14 @@ window.onload = function () {
 
                    // попадание
                    case 1:
-                       enemy.showIcons(enemy, coords, 'red-cross');
+                       self.showIcons(enemy, coords, 'red-cross');
                        text = (player == user) ? "Вы попали! Снова Ваш выстрел" : "Компьютер попал. Он снова ходит";
                        enemy.matrix[coords.x][coords.y] = 4;
                        self.showServiseText(text);
                        
                        for (var i = enemy.squadron.length - 1; i >=0; i--) {
                            var warship = enemy.squadron[i],
-                               arrayDescks = enemy.matrix;
+                               arrayDescks = enemy.squadron[i].matrix;
                            for (var j = 0; j < arrayDescks.length; j++) {
                                if (arrayDescks[j][0] == coords.x && arrayDescks[j][1] == coords.y) {
                                    warship.hits++;
@@ -298,13 +321,19 @@ window.onload = function () {
                                // показываем оставшиеся корабли
                            }
                        }
+
+                       if (player == comp) {
+                           setTimeout(function () {
+                               return self.shoot();
+                           }, 1300);
+                       }
                        break;
 
                    // отмеченная координата
                    case 2:
                        text = "Сначла снимите блокировку с этих координат!";
                        self.showServiseText(text);
-                       var icons = compfield.querySelectorAll('.shaded-cell');
+                       var icons = enemy.field.querySelectorAll('.shaded-cell');
                        [].forEach.call(icons, function (el) {
                           var x = el.style.top.slice(0, -2) / enemy.shipSide,
                               y = el.style.left.slice(0, -2) / enemy.shipSide;
