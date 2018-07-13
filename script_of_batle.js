@@ -156,6 +156,7 @@ window.onload = function () {
         }
         this.player.squadron.push(this);
         if (this.player == user) this.showShip();
+        //this.showShip();
         if (user.squadron.length == 10) {
             getElement('play').setAttribute('data-hidden', 'false');
         }
@@ -317,6 +318,16 @@ window.onload = function () {
                            if (player == user) {
                                compfield.removeEventListener('click', self.shoot);
                                compfield.removeEventListener('contextmenu', self.setEmptyCell);
+
+                               getElement("main_field_user").classList.remove('field');
+                               getElement("main_field_user").classList.add('dasha_style');
+                               getElement("main_field_user").classList.add('ships');
+                               getElement('main_field_user').removeChild(getElement('field_user'));
+
+                               getElement('main_field_comp').classList.add('roza');
+                               getElement('main_field_comp').classList.add('ships');
+                               getElement('main_field_comp').classList.remove('field');
+                               getElement('main_field_comp').removeChild(getElement('field_comp'));
                            } else {
                                // показываем оставшиеся корабли
                            }
@@ -331,7 +342,7 @@ window.onload = function () {
 
                    // отмеченная координата
                    case 2:
-                       text = "Сначла снимите блокировку с этих координат!";
+                       text = "Сначала снимите блокировку с этих координат!";
                        self.showServiseText(text);
                        var icons = enemy.field.querySelectorAll('.shaded-cell');
                        [].forEach.call(icons, function (el) {

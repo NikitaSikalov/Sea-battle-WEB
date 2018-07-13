@@ -82,6 +82,9 @@
         .type-placement-box .link {font-size: 23px; border-bottom: dashed 2px #4530af; cursor: pointer; font-style: italic; color: #cc0000}
         .text-btm {color: #c00; text-align: center; padding-top: 10px; font-style: italic; font-size: 25px}
 
+        .dasha_style {background: url("seabattle/dasha.jpg"); background-size: 100% 100%; z-index: 10; }
+        .roza {background: url("seabattle/roze.gif"); background-size: 100% 100%;}
+
 
         .icon-field {width: 30px; height: 33px; position: absolute; z-index: 5;}
         .dot {background-position: -410px 0;}
@@ -97,11 +100,11 @@
         <div class="text-top">Морской бой</div>
         <div class="outer clearfix">
 
-            <div class="field field-user">
+            <div id="main_field_user" class="field field-user">
                 <div id="field_user" class="ships"></div>
             </div>
 
-            <div class="field field-comp" data-hidden="true">
+            <div id="main_field_comp" class="field field-comp" data-hidden="true">
                 <div id="field_comp" class="ships"></div>
             </div>
 
