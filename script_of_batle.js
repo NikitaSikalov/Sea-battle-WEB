@@ -1,13 +1,15 @@
+// запуск скрипта при загрузке окна
 window.onload = function () {
 
     'use strict';
-    
+
     function Field(field) {
         // размер стороны игрового поля
         this.fieldSide = 330;
-        // размер палубы корабля
+        // размер палубы корабля/клетки поля
         this.shipSide = 33;
-        //массив кораблей
+        // массив кораблей, индекс в массиве будет означать кол-во кораблей, в массиве также имеется названия кораблей
+        // (для дальнейшего их отображения), а так же кол-во палуб
         this.shipsData = [
             '',
             [4, 'fourdeck'],
@@ -17,21 +19,21 @@ window.onload = function () {
         ];
         // игровое поле полученное в качестве аргумента
         this.field = field;
+        // получаем координаты верхней границы поля и левой границы
         this.fieldX = field.getBoundingClientRect().top + window.pageYOffset;
         this.fieldY = field.getBoundingClientRect().left + window.pageXOffset;
+        // массив кораблей с информацией о них, ниже описан класс Ships этих кораблей
         this.squadron = [];
     }
 
+    // вспомогательная функция (просто чтобы уменьшить кол-во кода)
     function getElement(id) {
         return document.getElementById(id);
     }
 
     var userfield = getElement('field_user'), compfield = getElement('field_comp'), comp;
-
     var user = new Field(getElement('field_user'));
-
-    // здесь безымянная функция привязана к обработчику событию, поэтому первым аргументом она
-    // она получит собтиые
+    // здесь безымянная функция привязана к обработчику событию, поэтому первым аргументом она она получит событие
     getElement('type_placement').addEventListener('click', function (event) {
         var el = event.target;
         if (el.tagName != 'SPAN') return;
@@ -52,11 +54,19 @@ window.onload = function () {
         return arr;
     }
 
+    // функция получения рандомного числа в пределах от 0 до n
     function getRandom(n) {
         return Math.floor(Math.random() * (n + 1))
     }
 
+    // функция, которая рандомно расставляет корабли по полю Field
     Field.prototype.randomLocationShips = function () {
+        // ага, здесь добавляется еще одно поле класса Field matrix, матрица с данными по клеткам поля
+        // 0 - пустая клетка
+        // 1 - палуба корабль
+        // 2 - заблокированная клетка
+        // 3 - промах
+        // 4 - попадание
         this.matrix = createMatrix();
         for (var i = 1, length = this.shipsData.length; i < length; i++) {
             // кол-во палуб
@@ -67,12 +77,15 @@ window.onload = function () {
                 fc.decks = decks;
                 // имя корабля и его номер
                 fc.shipname = this.shipsData[i][1] + String(j + 1);
+                // ship еще один класс, описан ниже
                 var ship = new Ships(this, fc);
                 ship.createShip();
             }
         }
     };
 
+    // функция возвращающая рандомные координаты первой палубы корабля (обращаю внимание что координаты корабля
+    // это координаты его первой палубы)
     Field.prototype.getCoordinatesDecks = function (decks) {
         var kx = getRandom(1);
         var ky = (kx == 0) ? 1 : 0, x, y;
@@ -92,6 +105,7 @@ window.onload = function () {
         return obj;
     };
 
+    // проверка валидности координат
     Field.prototype.checkLocationShip = function (x, y, kx, ky, decks) {
         var fromX = (x == 0) ? x : x - 1, toX;
         if (x + kx * decks == 10 && kx == 1) {
@@ -123,7 +137,8 @@ window.onload = function () {
         }
         return true;
     };
-    
+
+    // очистка поля, если игрок решил поменять растановку своих кораблей
     Field.prototype.cleanField = function () {
         var parent = this.field,
             id = parent.getAttribute('id'),
@@ -134,7 +149,8 @@ window.onload = function () {
         });
         this.squadron.length = 0;
     };
-    
+
+    // а вот и описание класса Ships
     function Ships(player, fc) {
         // поле на котором создается корабль
         this.player = player;
@@ -149,6 +165,7 @@ window.onload = function () {
         this.matrix = [];
     }
 
+    // создание корабля
     Ships.prototype.createShip = function () {
         for (var k = 0; k < this.decks; k++) {
             this.player.matrix[this.x0 + this.kx * k][this.y0 + this.ky * k] = 1;
@@ -161,6 +178,7 @@ window.onload = function () {
         }
     };
 
+    // показывает созданный корабль
     Ships.prototype.showShip = function () {
         var div = document.createElement('div'),
             dir = (this.kx == 1) ? ' vertical' : '',
@@ -171,8 +189,8 @@ window.onload = function () {
         div.style.cssText = 'left: ' + (this.y0 * player.shipSide) + 'px; top: ' + (this.x0  * player.shipSide) + 'px;';
         player.field.appendChild(div);
     };
-    //comp.randomLocationShips();
 
+    // устанавливаем обработчик событие на кнопку "Играть"
     getElement('play').addEventListener('click', function (e) {
         var el = e.target;
         if (el.tagName != 'SPAN') return;
@@ -184,14 +202,20 @@ window.onload = function () {
         Controller.battle.init();
     });
 
+    // Итак, на этом подготовительные работы закончились
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // ну а это сам модуль где и будет происходить сама игра
     var Controller = (function () {
+        // глобальные переменные, будем далее ими пользоваться везде
        var player, enemy, self, coords, text,
-           srvText = getElement('text_btm'),
-           tm = 0;
+           srvText = getElement('text_btm');
 
        var battle = {
+           // запуск боя
            init: function () {
                self = this;
+               // определяем кто ходит первым
                var rnd = getRandom(1);
                player = (rnd == 0) ? user : comp;
                enemy = (rnd == 0) ? comp : user;
@@ -199,9 +223,9 @@ window.onload = function () {
                /////////////////////////////////////////////////////////////
                // координаты которые не входят в shootMatrixAI и где потенциально может быть корабль
                comp.shootMatrix = [];
-               // диагнональные клетки с которых мы начнем обстрел
+               // диагнональные клетки с которых мы начнем обстрел (короче умные клетки с которых компу стоит начать обстрел)
                comp.shootMatrixAI = [];
-               // массив в влектами вокруг клетки с попаданием
+               // массив в клектами вокруг клетки с попаданием
                comp.shootMatrixAround = [];
                // массив начала побочных диаганалей
                comp.startPoints = [
@@ -219,6 +243,7 @@ window.onload = function () {
                    ky: 0
                };
 
+               // так ну надо бы заполнить эти матрицы, описание есть ниже ->
                self.setShootMatrix();
                 /////////////////////////////////////////////////////////
 
@@ -234,11 +259,14 @@ window.onload = function () {
                }
            },
 
+           // юзабельная функция везде ей будем пользоваться
            showServiseText: function (text) {
                srvText.innerHTML = '';
                srvText.innerHTML = text;
            },
 
+           // даем компьютеру знать что мы не тупые и тоже умеем думать, поэтому эта функция поможет нам правой кнопкой
+           // мыши пометить клетку специльном штрихом, где как мы считаем не может быть корабля противника
            setEmptyCell: function (e) {
                // проверяем что кликнули именно правой кнопкой мыши
                if (e.which != 3) return false;
@@ -263,6 +291,7 @@ window.onload = function () {
                }
            },
 
+           // ну это основная функция контролера, отвечающая за удар игроков
            shoot: function(e) {
                if (e != undefined) {
                    if (e.which != 1) return false;
@@ -347,7 +376,7 @@ window.onload = function () {
                                var max = self.checkMaxDecks();
                                if (comp.tempShip.totalHits >= max) {
                                    // однопалубный корабль
-                                   if (comp.totalHits == 1) {
+                                   if (comp.tempShip.totalHits == 1) {
                                        points = [
                                            [comp.tempShip.x0 - 1, comp.tempShip.y0],
                                            [comp.tempShip.x0 + 1, comp.tempShip.y0],
@@ -403,6 +432,7 @@ window.onload = function () {
                }
            },
 
+           // эта штука для клика мыши и определения ее координат
            transformCoordinates: function (e, enemy) {
                // полифил для IE
                if (!Math.trunc) {
@@ -417,7 +447,8 @@ window.onload = function () {
                obj.y = Math.trunc((e.pageX - enemy.fieldY) / enemy.shipSide);
                return obj;
            },
-           
+
+           // тоже полезная фун-ция позволяющая показать нужную иконку на поле визуально
            showIcons: function (enemy, coords, iconClass) {
                var div = document.createElement('div');
                div.className = 'icon-field ' + iconClass;
@@ -467,13 +498,12 @@ window.onload = function () {
                    x: temp_coords[0],
                    y: temp_coords[1]
                };
-               if (comp.shootMatrixAI.length != 0) {
-                   self.deleteElementMatrix(comp.shootMatrixAI, obj);
-               }
+               self.deleteElementMatrix(comp.shootMatrixAI, obj);
                self.deleteElementMatrix(comp.shootMatrix, obj);
                return obj;
            },
 
+           // удаляем определенный элемент массива
            deleteElementMatrix: function (array, obj) {
                for(var i = 0; i < array.length; ++i) {
                    if (array[i][0] == obj.x && array[i][1] == obj.y) {
@@ -483,6 +513,7 @@ window.onload = function () {
                }
            },
 
+           // сбросить данные про обстреленный корабль
            resetTempShip: function () {
                comp.shootMatrixAround = [];
                comp.tempShip = {
@@ -494,6 +525,7 @@ window.onload = function () {
                };
            },
 
+           // помечаем клетку за компьютер, где он не будет бить, потому что тоже неглупый и умеет думать
            markEmptyCell: function (points) {
                for (var i = 0; i < points.length; i++) {
                    var obj = {
@@ -518,6 +550,7 @@ window.onload = function () {
                return Math.max.apply(null, arr);
            },
 
+           // ударили, попали тогда нам надо отметить ближайшие клетки по которым будем дообстреливать корабль
            setShootMatrixAround: function () {
                if (comp.tempShip.kx == 0 && comp.tempShip.ky == 0) {
                    if (Object.keys(comp.tempShip.firstHit).length == 0) {
