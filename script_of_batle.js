@@ -170,7 +170,7 @@ window.onload = function () {
         div.className = 'ship ' + classname + dir;
         div.style.cssText = 'left: ' + (this.y0 * player.shipSide) + 'px; top: ' + (this.x0  * player.shipSide) + 'px;';
         player.field.appendChild(div);
-    }
+    };
     //comp.randomLocationShips();
 
     getElement('play').addEventListener('click', function (e) {
@@ -277,7 +277,7 @@ window.onload = function () {
                    case 0:
                        enemy.matrix[coords.x][coords.y] = 3;
                        self.showIcons(enemy, coords, 'dot');
-                       text = (player == user) ? "Вы промохнулись. Стредяет компьютер" : "Компьютер промохнулся. Теперь стреляете Вы";
+                       text = (player == user) ? "Вы промохнулись. Стреляет компьютер" : "Компьютер промохнулся. Теперь стреляете Вы";
                        self.showServiseText(text);
                        player = (player == user) ? comp : user;
                        enemy = (enemy == comp) ? user : comp;
@@ -330,7 +330,9 @@ window.onload = function () {
                                compfield.removeEventListener('click', self.shoot);
                                compfield.removeEventListener('contextmenu', self.setEmptyCell);
                            } else {
-                               comp.showShip();
+                               for (var i = 0; i < comp.squadron.length; i++) {
+                                   comp.squadron[i].showShip();
+                               }
                            }
                        } else {
                            if (player == comp) {
@@ -378,7 +380,7 @@ window.onload = function () {
 
                    // отмеченная координата
                    case 2:
-                       text = "Сначла снимите блокировку с этих координат!";
+                       text = "Сначала снимите блокировку с этих координат!";
                        self.showServiseText(text);
                        var icons = enemy.field.querySelectorAll('.shaded-cell');
                        [].forEach.call(icons, function (el) {
@@ -434,17 +436,13 @@ window.onload = function () {
                            case 0:
                                while(x <= 9 && y <= 9) {
                                    comp.shootMatrixAI.push([x, y]);
-                                   x++;
-                                   y++;
-                                  // x = (x <= 9) ? x: 9;
-                                  // y = (y <= 9) ? y: 9;
+                                   x++; y++;
                                }
                                break;
                            case 1:
                                while (x >= 0 && y <= 9) {
                                    comp.shootMatrixAI.push([x, y]);
-                                   x--;
-                                   y++;
+                                   x--; y++;
                                }
                                break;
                        }
