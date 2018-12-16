@@ -1,43 +1,75 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;">
-    <title>Морской бой</title>
-    <link href="style.css" rel="stylesheet">
-    <link href="seabattle/favicon.ico" rel="icon">
+    <title>Sea battle</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <style>
+        body {
+            //background: url("public/background.jpg") no-repeat;
+            background-size: cover;
+        }
+
+        div.flex-column {
+            height: 100vh;
+        }
+
+        div.container-fluid .d-flex{
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header {
+            height: 10vh;
+            color: blue;
+        }
+
+        .header > h1 {
+            font-size: 4em;
+            margin: 30px;
+            display: none;
+        }
+
+        button.btn {
+            //display: none;
+        }
+
+        .table-bordered  td {
+            width: 5vh;
+            height: 5vh;
+        }
+
+        .footer {
+            height: 10vh;
+        }
+
+        .marked {
+            background-color: lightblue;
+        }
+    </style>
+    <script src="jQuery/jquery-3.3.1.min.js"></script>
 </head>
-
 <body>
+<script src="sea_battle.js"></script>
+<script>
 
-    <div class="battlefield">
-        <div class="text-top">Морской бой</div>
-        <!-- Обертак игрового поля-->
-        <div class="outer clearfix">
-            <!-- Поле игрока -->
-            <div class="field field-user">
-                <div id="field_user" class="ships"></div>
-            </div>
-
-            <!-- Поле компьютера -->
-            <div class="field field-comp" data-hidden="true">
-                <div id="field_comp" class="ships"></div>
-            </div>
-
-            <!-- Надпись справа о растановке кораблей -->
-            <div id="type_placement" class="type-placement-box" data-hidden="false">
-                <span class="link" data-target="random">Раставить корабли случайным образом</span>
-            </div>
-
-            <!-- Кнопка начала игры -->
-            <span id="play" class="btn-play" data-hidden="true">Играть</span>
-        </div>
-
-        <!-- Информационное окно снизу -->
-        <div id="text_btm" class="text-btm"></div>
+</script>
+<div class="container-fluid d-flex flex-column">
+    <div class="d-flex header">
+        <h1 class="font-italic">Морской бой</h1>
     </div>
-    <!-- Скрипт игры -->
-    <script src="script_of_batle.js"></script>
+    <div class="d-flex flex-grow-1 field">
+        <button class="btn btn-lg btn-primary m-3 comp">Играть с ИИ</button>
+        <button class="btn btn-primary btn-lg m-3 player">Играть вдвоем</button>
+        <div class="container game-field-1 d-flex">
+            <table class="table-bordered"></table>
+        </div>
+        <div class="container game-field-2 d-flex">
+            <table class="table-bordered"></table>
+        </div>
+    </div>
+    <div class='d-flex game-buttons'></div>
+    <div class="footer d-flex"></div>
+</div>
 </body>
-
 </html>
