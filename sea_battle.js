@@ -25,7 +25,6 @@
             var Game = InitGame(N);
             $(".game-buttons").append("<button class='btn btn-lg btn-primary m-3 place-random'>Случайная расстановка</button>")
             $(".game-buttons").append("<button class='btn btn-lg btn-dark m-3 start-game'>Начать игру</button>");
-            $(".game-buttons").append("<button class='btn btn-lg btn-primary m-3 place-own'>Расставить самому</button>");
             $(".place-random").click(function () {
                 Game = InitGame(N);
             });
